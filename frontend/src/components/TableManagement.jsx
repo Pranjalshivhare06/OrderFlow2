@@ -231,8 +231,8 @@ import { Link } from 'react-router-dom'
 import axios from 'axios'
 import './TableManagement.css'
 
-const API_BASE_URL = 'http://localhost:5000/api'
-
+// const API_BASE_URL = 'http://localhost:5000/api'
+const API_BASE_URL = 'https://orderflow-backend-v964.onrender.com/api'
 const TableManagement = () => {
   const [tables, setTables] = useState([])
   const [newTableNumber, setNewTableNumber] = useState('')
@@ -283,8 +283,9 @@ const TableManagement = () => {
   }
 
   const generateQRCodeImage = (tableNumber) => {
-    const url = `${window.location.origin}/order/${tableNumber}`
-    return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(url)}`
+    const baseUrl = 'https://orderflow-backend-v964.onrender.com';
+    const url = `${baseUrl}/order/${tableNumber}`;
+    return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(url)}`;
   }
 
   const printQRCode = (tableNumber) => {

@@ -3,7 +3,8 @@ import { useParams } from 'react-router-dom'
 import axios from 'axios'
 import './CustomerOrder.css'
 
-const API_BASE_URL = 'http://localhost:5000/api'
+// const API_BASE_URL = 'http://localhost:5000/api'
+const API_BASE_URL = 'https://orderflow-backend-v964.onrender.com/api'
 
 const CustomerOrder = () => {
   const { tableNumber } = useParams()

@@ -227,8 +227,8 @@ import io from 'socket.io-client'
 import axios from 'axios'
 import './ReceptionDashboard.css'
 
-const API_BASE_URL = 'http://localhost:5000/api'
-
+// const API_BASE_URL = 'http://localhost:5000/api'
+const API_BASE_URL = 'https://orderflow-backend-v964.onrender.com/api'
 const ReceptionDashboard = () => {
   const [orders, setOrders] = useState([])
   const [stats, setStats] = useState({
@@ -243,7 +243,7 @@ const ReceptionDashboard = () => {
     fetchOrders()
     fetchStats()
     
-    const socket = io('http://localhost:5000')
+    const socket = io('https://orderflow-backend-v964.onrender.com')
     socket.emit('join-reception')
     
     socket.on('new-order', (newOrder) => {
