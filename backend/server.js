@@ -4,6 +4,7 @@ const socketIo = require('socket.io');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
+const inventoryRoutes = require('./routes/inventory');
 
 const app = express();
 const server = http.createServer(app);
@@ -17,6 +18,7 @@ const io = socketIo(server, {
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use('/api/inventory', inventoryRoutes);
 // Add this with your other routes in server.js
 // app.use('/api/init', require('./routes/init'));
 // Database connection
@@ -24,7 +26,8 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/restauran
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
-
+app.use('/uploads', express.static('uploads')); // Serve static files from uploads directory
+app.use('/api/upload', require('./routes/upload')); // Add this line to include upload routes
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 db.once('open', () => {

@@ -1,3 +1,77 @@
+/* QR Code Styles */
+.qr-code-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 15px 0;
+  min-height: 200px;
+}
+
+.qr-image {
+  width: 180px;
+  height: 180px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  background: white;
+}
+
+.qr-error {
+  text-align: center;
+  padding: 20px;
+  color: #dc3545;
+  background: #f8d7da;
+  border-radius: 8px;
+  border: 1px solid #f5c6cb;
+}
+
+/* Table URL Styles */
+.table-url {
+  word-break: break-all;
+  font-size: 0.8rem;
+  color: #007bff;
+  text-decoration: none;
+}
+
+.table-url:hover {
+  text-decoration: underline;
+}
+
+/* Loading States */
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ffffff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .qr-image {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .table-url {
+    font-size: 0.7rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .table-management {
+    visibility: hidden;
+  }
+}
+
 .table-management {
   min-height: 100vh;
   background-color: #f8f9fa;

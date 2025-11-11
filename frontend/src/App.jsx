@@ -5,7 +5,9 @@ import 'react-toastify/dist/ReactToastify.css'
 import CustomerOrder from './components/CustomerOrder'
 import ReceptionDashboard from './components/ReceptionDashboard'
 import TableManagement from './components/TableManagement'
+import MenuManagement from './components/MenuManagement'
 import './App.css'
+import InventoryManagement from './components/InventoryManagement'
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
           <Route path="/reception" element={<ReceptionDashboard />} />
           <Route path="/admin/tables" element={<TableManagement />} />
           <Route path="/" element={<Navigate to="/reception" replace />} />
+          <Route path="/admin/menu" element={<MenuManagement />} />
+          <Route path="/inventory" element={<InventoryManagement />} />
         </Routes>
         <ToastContainer 
           position="bottom-right"

@@ -59,6 +59,10 @@ const orderSchema = new mongoose.Schema({
   timestamps: true
 });
 
+
+
+
+
 // FIXED: Generate order number before saving
 orderSchema.pre('save', async function(next) {
   // Only generate orderNumber if it doesn't exist

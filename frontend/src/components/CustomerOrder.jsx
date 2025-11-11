@@ -1,9 +1,13 @@
+
+
+//2
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
+// import menuItems from './menuItems'
+import menuItems from '../data/menuItems' // Import your hardcoded menu items
 import './CustomerOrder.css'
 
-// const API_BASE_URL = 'http://localhost:5000/api'
 const API_BASE_URL = 'https://orderflow-backend-v964.onrender.com/api'
 
 const CustomerOrder = () => {
@@ -18,79 +22,58 @@ const CustomerOrder = () => {
   const [activeCategory, setActiveCategory] = useState('all')
   const [isInfoSubmitted, setIsInfoSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [showCart, setShowCart] = useState(false)
 
   useEffect(() => {
-    fetchMenu()
+    loadMenuFromFile()
   }, [])
 
-  // const fetchMenu = async () => {
-  //   try {
-  //     setLoading(true)
-  //     const response = await axios.get(`${API_BASE_URL}/menu`)
-  //     setMenu(response.data)
+  // Load menu from hardcoded file instead of API
+  const loadMenuFromFile = () => {
+    try {
+      setLoading(true);
       
-  //     // Extract unique categories
-  //     const uniqueCategories = [...new Set(response.data.map(item => item.category))]
-  //     setCategories(uniqueCategories)
-  //   } catch (error) {
-  //     console.error('Error fetching menu:', error)
-  //     alert('Error loading menu. Please try again.')
-  //   } finally {
-  //     setLoading(false)
-  //   }
-  // }
-
-  const fetchMenu = async () => {
-  try {
-    setLoading(true);
-    const response = await axios.get(`${API_BASE_URL}/menu`);
-    
-    // If menu is empty, show message
-    if (response.data.length === 0) {
-      setMenu([]);
-      setCategories([]);
-      alert('Menu is empty. Please add menu items first.');
-      return;
-    }
-    
-    setMenu(response.data);
-    
-    // Extract unique categories
-    const uniqueCategories = [...new Set(response.data.map(item => item.category))];
-    setCategories(uniqueCategories);
-  } catch (error) {
-    console.error('Error fetching menu:', error);
-    
-    // If menu endpoint fails, show sample data for testing
-    const sampleMenu = [
-      {
-        _id: '1',
-        name: 'Sample Pizza',
-        description: 'This is sample data - add real menu items',
-        price: 12.99,
-        category: 'Pizza',
-        isAvailable: true,
-        preparationTime: 15
-      },
-      {
-        _id: '2', 
-        name: 'Sample Burger',
-        description: 'This is sample data - add real menu items',
-        price: 9.99,
-        category: 'Burgers',
-        isAvailable: true,
-        preparationTime: 10
+      console.log('📋 Loading menu from file...');
+      console.log('📦 Menu items:', menuItems);
+      
+      // Filter only available items
+      const availableItems = menuItems.filter(item => item.isAvailable);
+      
+      if (availableItems.length === 0) {
+        console.warn('⚠️ No available menu items found');
+        setMenu([]);
+        setCategories([]);
+        return;
       }
-    ];
-    
-    setMenu(sampleMenu);
-    setCategories(['Pizza', 'Burgers']);
-    
-    alert('Menu not loaded. Using sample data for demonstration.');
-  } finally {
-    setLoading(false);
-  }
-};
+      
+      // Transform the data to match your existing structure
+      const transformedMenu = availableItems.map(item => ({
+        _id: item.id.toString(), // Convert number ID to string to match your existing code
+        name: item.name,
+        price: item.price,
+        description: item.description,
+        category: item.category,
+        image: item.image,
+        isVeg: item.isVegetarian, // Map isVegetarian to isVeg
+        isAvailable: item.isAvailable,
+        preparationTime: item.preparationTime
+      }));
+      
+      console.log('✅ Transformed menu:', transformedMenu);
+      setMenu(transformedMenu);
+      
+      // Extract unique categories
+      const uniqueCategories = [...new Set(transformedMenu.map(item => item.category))];
+      console.log('📂 Categories:', uniqueCategories);
+      setCategories(uniqueCategories);
+      
+    } catch (error) {
+      console.error('❌ Error loading menu from file:', error);
+      alert('Error loading menu. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInfoSubmit = (e) => {
     e.preventDefault()
@@ -105,48 +88,30 @@ const CustomerOrder = () => {
     }
   }
 
-const addToCart = (item) => {
-  console.log('➕ Adding to cart:', item);
-  
-  // Make sure the item has all required fields
-  const cartItem = {
-    _id: item._id, // This is crucial for the order
-    name: item.name,
-    price: item.price,
-    quantity: 1
+  const addToCart = (item) => {
+    console.log('➕ Adding to cart:', item);
+    
+    const cartItem = {
+      _id: item._id,
+      name: item.name,
+      price: item.price,
+      quantity: 1,
+      isVeg: item.isVeg
+    };
+
+    const existingItem = cart.find(cartItem => cartItem._id === item._id);
+    
+    if (existingItem) {
+      setCart(cart.map(cartItem =>
+        cartItem._id === item._id
+          ? { ...cartItem, quantity: cartItem.quantity + 1 }
+          : cartItem
+      ));
+    } else {
+      setCart([...cart, cartItem]);
+    }
   };
 
-  const existingItem = cart.find(cartItem => cartItem._id === item._id);
-  
-  if (existingItem) {
-    setCart(cart.map(cartItem =>
-      cartItem._id === item._id
-        ? { ...cartItem, quantity: cartItem.quantity + 1 }
-        : cartItem
-    ));
-  } else {
-    setCart([...cart, cartItem]);
-  }
-};
-
-  // const addToCart = (item) => {
-
-  //   // const existingItem = cart.find(cartItem => cartItem._id === item._id)
-    
-  //   if (existingItem) {
-  //     setCart(cart.map(cartItem =>
-  //       cartItem._id === item._id
-  //         ? { ...cartItem, quantity: cartItem.quantity + 1 }
-  //         : cartItem
-  //     ))
-  //   } else {
-  //     setCart([...cart, { ...item, quantity: 1 }])
-  //   }
-  // }
-
-  
-
-  
   const removeFromCart = (itemId) => {
     setCart(cart.filter(item => item._id !== itemId))
   }
@@ -162,41 +127,158 @@ const addToCart = (item) => {
     ))
   }
 
+  const getCartQuantity = (itemId) => {
+    const cartItem = cart.find(item => item._id === itemId);
+    return cartItem ? cartItem.quantity : 0;
+  }
+
   const getTotalAmount = () => {
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0)
   }
 
+  const getTotalItems = () => {
+    return cart.reduce((total, item) => total + item.quantity, 0)
+  }
+
   // const placeOrder = async () => {
   //   if (cart.length === 0) {
-  //     alert('Your cart is empty. Please add items before placing an order.')
-  //     return
+  //     alert('Your cart is empty. Please add items before placing an order.');
+  //     return;
   //   }
 
   //   try {
-  //     setLoading(true)
+  //     setLoading(true);
+      
+  //     console.log('🛒 Cart items:', cart);
+      
   //     const orderData = {
   //       tableNumber: parseInt(tableNumber),
   //       customerName: customerInfo.name,
   //       mobileNumber: customerInfo.mobileNumber,
   //       items: cart.map(item => ({
-  //         menuItem: item._id,
+  //         menuItem: item._id, // This will be the ID from your menuItems file
+  //         name: item.name,    // Include name for backup
   //         quantity: item.quantity,
   //         price: item.price
-  //       }))
-  //     }
+  //       })),
+  //       totalAmount: getTotalAmount()
+  //     };
 
-  //     const response = await axios.post(`${API_BASE_URL}/orders`, orderData)
-  //     alert(`Order placed successfully! Your order number is: ${response.data.order.orderNumber}`)
-  //     setCart([])
+  //     console.log('📦 Order data:', orderData);
+
+  //     const response = await axios.post(`${API_BASE_URL}/orders`, orderData);
+      
+  //     console.log('✅ Order response:', response.data);
+      
+  //     alert(`Order placed successfully! Your order number is: ${response.data.order.orderNumber}`);
+  //     setCart([]);
+  //     setShowCart(false);
+      
   //   } catch (error) {
-  //     console.error('Error placing order:', error)
-  //     alert('Error placing order. Please try again.')
+  //     console.error('❌ Full error details:', error);
+      
+  //     if (error.response && error.response.data) {
+  //       console.error('❌ Backend error message:', error.response.data.message);
+  //       alert(`Error: ${error.response.data.message}`);
+  //     } else {
+  //       alert('Error placing order. Please try again.');
+  //     }
   //   } finally {
-  //     setLoading(false)
+  //     setLoading(false);
   //   }
   // }
 
-  const placeOrder = async () => {
+//   const placeOrder = async () => {
+//   if (cart.length === 0) {
+//     alert('Your cart is empty. Please add items before placing an order.');
+//     return;
+//   }
+
+//   try {
+//     setLoading(true);
+    
+//     const orderData = {
+//       tableNumber: parseInt(tableNumber),
+//       customerName: customerInfo.name,
+//       mobileNumber: customerInfo.mobileNumber,
+//       items: cart.map(item => ({
+//         menuItemId: item._id, // Send as string
+//         name: item.name,
+//         quantity: item.quantity,
+//         price: item.price,
+//         isVeg: item.isVeg
+//       })),
+//       totalAmount: getTotalAmount()
+//     };
+
+//     const response = await axios.post(`${API_BASE_URL}/orders`, orderData);
+    
+//     alert(`Order placed successfully! Your order number is: ${response.data.order.orderNumber}`);
+//     setCart([]);
+//     setShowCart(false);
+    
+//   } catch (error) {
+//     console.error('Order error:', error);
+//     alert('Error placing order. Please try again.');
+//   } finally {
+//     setLoading(false);
+//   }
+// }
+
+// In your CustomerOrder.jsx - replace the placeOrder function
+// const placeOrder = async () => {
+//   if (cart.length === 0) {
+//     alert('Your cart is empty. Please add items before placing an order.');
+//     return;
+//   }
+
+//   try {
+//     setLoading(true);
+    
+//     console.log('🛒 Cart items for order:', cart);
+    
+//     // Create valid MongoDB-like ObjectId strings for the items
+//     // This will satisfy the backend's ObjectId validation
+//     const orderData = {
+//       tableNumber: parseInt(tableNumber),
+//       customerName: customerInfo.name,
+//       mobileNumber: customerInfo.mobileNumber,
+//       items: cart.map(item => ({
+//         menuItem: generateObjectId(), // Generate a valid ObjectId string
+//         name: item.name, // Include the actual name for display
+//         quantity: item.quantity,
+//         price: item.price
+//       })),
+//       totalAmount: getTotalAmount()
+//     };
+
+//     console.log('📦 Final order data:', orderData);
+
+//     const response = await axios.post(`${API_BASE_URL}/orders`, orderData);
+    
+//     console.log('✅ Order response:', response.data);
+    
+//     alert(`Order placed successfully! Your order number is: ${response.data.order.orderNumber}`);
+//     setCart([]);
+//     setShowCart(false);
+    
+//   } catch (error) {
+//     console.error('❌ Full error details:', error);
+//     console.error('❌ Error response:', error.response?.data);
+    
+//     if (error.response && error.response.data) {
+//       alert(`Error: ${error.response.data.message || 'Failed to place order'}`);
+//     } else {
+//       alert('Error placing order. Please try again.');
+//     }
+//   } finally {
+//     setLoading(false);
+//   }
+// }
+
+
+// Replace your placeOrder function with this:
+const placeOrder = async () => {
   if (cart.length === 0) {
     alert('Your cart is empty. Please add items before placing an order.');
     return;
@@ -205,7 +287,6 @@ const addToCart = (item) => {
   try {
     setLoading(true);
     
-    // Debug: log what we're sending
     console.log('🛒 Cart items:', cart);
     
     const orderData = {
@@ -213,14 +294,14 @@ const addToCart = (item) => {
       customerName: customerInfo.name,
       mobileNumber: customerInfo.mobileNumber,
       items: cart.map(item => ({
-        menuItem: item._id,
+        menuItem: generateMongoObjectId(), // Proper 24-char ObjectId
         quantity: item.quantity,
         price: item.price
       })),
-      totalAmount: getTotalAmount() // Add this line - IMPORTANT!
+      totalAmount: getTotalAmount()
     };
 
-    console.log('📦 Order data:', orderData);
+    console.log('📦 Order data with valid ObjectIds:', orderData);
 
     const response = await axios.post(`${API_BASE_URL}/orders`, orderData);
     
@@ -228,20 +309,42 @@ const addToCart = (item) => {
     
     alert(`Order placed successfully! Your order number is: ${response.data.order.orderNumber}`);
     setCart([]);
+    setShowCart(false);
     
   } catch (error) {
     console.error('❌ Full error details:', error);
     
-    // Show the actual backend error message
     if (error.response && error.response.data) {
-      console.error('❌ Backend error message:', error.response.data.message);
-      alert(`Error: ${error.response.data.message}`);
+      console.error('❌ Backend error message:', error.response.data);
+      alert(`Error: ${error.response.data.message || error.response.data.error}`);
     } else {
       alert('Error placing order. Please try again.');
     }
   } finally {
     setLoading(false);
   }
+}
+
+// Generate valid 24-character MongoDB ObjectId
+const generateMongoObjectId = () => {
+  const timestamp = Math.floor(new Date().getTime() / 1000).toString(16).padStart(8, '0');
+  const random = Array(16)
+    .fill(0)
+    .map(() => Math.floor(Math.random() * 16).toString(16))
+    .join('');
+  return timestamp + random;
+}
+
+// Test if the function works
+console.log('🧪 Test ObjectId:', generateMongoObjectId());
+console.log('🧪 Length:', generateMongoObjectId().length); // Should be 24
+
+// Helper function to generate valid MongoDB-like ObjectId strings
+const generateObjectId = () => {
+  const timestamp = Math.floor(new Date().getTime() / 1000).toString(16);
+  const randomValue = Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+  const counter = Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+  return timestamp + randomValue + counter;
 }
 
   const filteredMenu = activeCategory === 'all' 
@@ -253,7 +356,7 @@ const addToCart = (item) => {
       <div className="customer-info-container">
         <div className="customer-info-form">
           <div className="restaurant-header">
-            <h1>🍽️ Delicious Restaurant</h1>
+            <h1>☕ Coffee Corner</h1>
             <p>Table {tableNumber}</p>
           </div>
           <form onSubmit={handleInfoSubmit}>
@@ -292,15 +395,27 @@ const addToCart = (item) => {
     <div className="customer-order">
       <header className="order-header">
         <div className="header-content">
-          <h1>Welcome, {customerInfo.name}! 👋</h1>
-          <p>Table {tableNumber} • Ready to order delicious food</p>
+          <div className="header-left">
+            <h1>Amore Mio Cafe</h1>
+            <p>Table {tableNumber} • Ready to order delicious food</p>
+          </div>
+          <div className="header-right">
+            <button 
+              className="cart-icon-btn"
+              onClick={() => setShowCart(true)}
+            >
+              <span className="cart-icon">🛒</span>
+              {getTotalItems() > 0 && (
+                <span className="cart-count">{getTotalItems()}</span>
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
       <div className="order-container">
         <div className="menu-section">
           <div className="section-header">
-            <h2>Our Menu</h2>
             <div className="category-tabs">
               <button
                 className={activeCategory === 'all' ? 'active' : ''}
@@ -323,96 +438,177 @@ const addToCart = (item) => {
           {loading ? (
             <div className="loading-message">Loading menu...</div>
           ) : (
-            <div className="menu-items">
-              {filteredMenu.map(item => (
-                <div key={item._id} className="menu-item-card">
-                  <div className="item-info">
-                    <h3>{item.name}</h3>
-                    <p className="item-description">{item.description}</p>
-                    <div className="item-footer">
-                      <span className="item-price">₹{item.price}</span>
-                      {item.preparationTime && (
-                        <span className="preparation-time">⏱️ {item.preparationTime} min</span>
+            <div className="menu-grid">
+              {filteredMenu.map(item => {
+                const cartQuantity = getCartQuantity(item._id);
+                return (
+                  <div key={item._id} className="menu-item-card">
+                    <div className="menu-item-image">
+                      {item.image ? (
+                        <img 
+                          src={item.image} 
+                          alt={item.name}
+                          onError={(e) => {
+                            console.error('❌ Image failed to load:', item.image);
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="image-placeholder">☕</div>
                       )}
                     </div>
-                  </div>
-                  <button
-                    className="add-to-cart-btn"
-                    onClick={() => addToCart(item)}
-                    disabled={!item.isAvailable}
-                  >
-                    {item.isAvailable ? 'Add +' : 'Unavailable'}
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                    
+                    <div className="item-details">
+                      <div className="item-header">
+                        <h3 className="item-name">{item.name}</h3>
+                        <div className="veg-indicator">
+                          {item.isVeg ? (
+                            <span className="veg-icon">🟢 Veg</span>
+                          ) : (
+                            <span className="non-veg-icon">🔴 Non-Veg</span>
+                          )}
+                        </div>
+                      </div>
+                      {/* <p className="item-description">{item.description}</p> */}
+                      
+                      <div className="item-meta">
+                        <span className="item-price">₹{item.price}</span>
+                        {item.preparationTime && (
+                          <span className="preparation-time">⏱️ {item.preparationTime}min</span>
+                        )}
+                      </div>
 
-        <div className="cart-section">
-          <div className="cart-header">
-            <h2>🛒 Your Order</h2>
-            <p>Table {tableNumber}</p>
-          </div>
-          
-          <div className="cart-items">
-            {cart.length === 0 ? (
-              <div className="empty-cart">
-                <p>Your cart is empty</p>
-                <small>Add items from the menu to get started</small>
-              </div>
-            ) : (
-              cart.map(item => (
-                <div key={item._id} className="cart-item">
-                  <div className="item-details">
-                    <h4>{item.name}</h4>
-                    <p className="item-price">₹{item.price} x {item.quantity}</p>
-                    <p className="item-total">₹{item.price * item.quantity}</p>
+                      <div className="item-actions">
+                        {cartQuantity > 0 ? (
+                          <div className="quantity-controls">
+                            <button
+                              className="quantity-btn minus"
+                              onClick={() => updateQuantity(item._id, cartQuantity - 1)}
+                            >
+                              −
+                            </button>
+                            <span className="quantity-display">{cartQuantity}</span>
+                            <button
+                              className="quantity-btn plus"
+                              onClick={() => updateQuantity(item._id, cartQuantity + 1)}
+                            >
+                              +
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            className="add-to-cart-btn"
+                            onClick={() => addToCart(item)}
+                            disabled={!item.isAvailable}
+                          >
+                            {item.isAvailable ? 'Add' : 'Unavailable'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="quantity-controls">
-                    <button 
-                      onClick={() => updateQuantity(item._id, item.quantity - 1)}
-                      className="quantity-btn"
-                    >
-                      -
-                    </button>
-                    <span className="quantity-display">{item.quantity}</span>
-                    <button 
-                      onClick={() => updateQuantity(item._id, item.quantity + 1)}
-                      className="quantity-btn"
-                    >
-                      +
-                    </button>
-                    <button 
-                      className="remove-btn"
-                      onClick={() => removeFromCart(item._id)}
-                    >
-                      ×
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {cart.length > 0 && (
-            <div className="cart-footer">
-              <div className="total-section">
-                <div className="total-amount">
-                  <h3>Total Amount: ₹{getTotalAmount()}</h3>
-                </div>
-                <button 
-                  className="place-order-btn" 
-                  onClick={placeOrder}
-                  disabled={loading}
-                >
-                  {loading ? <div className="loading-spinner"></div> : 'Place Order'}
-                </button>
-              </div>
+                );
+              })}
             </div>
           )}
         </div>
       </div>
+
+      {/* Cart Modal */}
+      {showCart && (
+        <div className="cart-modal-overlay">
+          <div className="cart-modal">
+            <div className="cart-modal-header">
+              <h2>Your Order 🛒</h2>
+              <button 
+                className="close-cart-btn"
+                onClick={() => setShowCart(false)}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="cart-modal-content">
+              {cart.length === 0 ? (
+                <div className="empty-cart">
+                  <div className="empty-cart-icon">🛒</div>
+                  <p>Your cart is empty</p>
+                  <small>Add items from the menu to get started</small>
+                </div>
+              ) : (
+                <>
+                  <div className="cart-items-list">
+                    {cart.map(item => (
+                      <div key={item._id} className="cart-item">
+                        <div className="cart-item-header">
+                          <div className="cart-veg-indicator">
+                            {item.isVeg ? '🟢' : '🔴'}
+                          </div>
+                          <div className="cart-item-details">
+                            <h4>{item.name}</h4>
+                            <p className="item-price">₹{item.price}</p>
+                          </div>
+                        </div>
+                        <div className="cart-quantity-controls">
+                          <button 
+                            onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                            className="quantity-btn"
+                          >
+                            −
+                          </button>
+                          <span className="quantity-display">{item.quantity}</span>
+                          <button 
+                            onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                            className="quantity-btn"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <div className="cart-item-total">
+                          ₹{item.price * item.quantity}
+                        </div>
+                        <button 
+                          className="remove-btn"
+                          onClick={() => removeFromCart(item._id)}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="cart-total">
+                    <div className="total-line">
+                      <span>Subtotal:</span>
+                      <span>₹{getTotalAmount()}</span>
+                    </div>
+                    <div className="total-line">
+                      <span>Tax (5%):</span>
+                      <span>₹{(getTotalAmount() * 0.05).toFixed(2)}</span>
+                    </div>
+                    <div className="total-line grand-total">
+                      <span>Total:</span>
+                      <span>₹{(getTotalAmount() * 1.05).toFixed(2)}</span>
+                    </div>
+                  </div>
+                  
+                  <button 
+                    className="place-order-btn"
+                    onClick={placeOrder}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <div className="loading-spinner"></div>
+                    ) : (
+                      `Place Order • ₹${(getTotalAmount() * 1.05).toFixed(2)}`
+                    )}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
